@@ -34,6 +34,10 @@ GameManager.prototype.keepPlaying = function () {
 
 // Return true if the game is lost, or has won and the user hasn't kept playing
 GameManager.prototype.isGameTerminated = function () {
+  const isGameTerminated = this.over || (this.won && !this.keepPlaying);
+  // send react native message
+  const eventData = { event: 'gameState', payload: {isGameTerminated, isOver: this.over, isWon: this.won } };
+  window.ReactNativeWebView.postMessage(JSON.stringify(eventData));
   return this.over || (this.won && !this.keepPlaying);
 };
 
@@ -85,11 +89,17 @@ GameManager.prototype.addRandomTile = function () {
 GameManager.prototype.actuate = function () {
   if (this.storageManager.getBestScore() < this.score) {
     this.storageManager.setBestScore(this.score);
+    // send react native message
+    const eventData = { event: 'setBestScore', payload: this.score };
+    window.ReactNativeWebView.postMessage(JSON.stringify(eventData));
   }
 
   // Clear the state when the game is over (game over only, not win)
   if (this.over) {
     this.storageManager.clearGameState();
+    // send react native message
+    const eventData = { event: 'gameOver', payload: true };
+    window.ReactNativeWebView.postMessage(JSON.stringify(eventData));
   } else {
     this.storageManager.setGameState(this.serialize());
   }
@@ -101,6 +111,16 @@ GameManager.prototype.actuate = function () {
     bestScore:  this.storageManager.getBestScore(),
     terminated: this.isGameTerminated()
   });
+
+      // send react native message
+      const eventData = { event: 'actuate', payload: {
+        score:      this.score,
+        over:       this.over,
+        won:        this.won,
+        bestScore:  this.storageManager.getBestScore(),
+        terminated: this.isGameTerminated()
+      } };
+      window.ReactNativeWebView.postMessage(JSON.stringify(eventData));
 
 };
 
