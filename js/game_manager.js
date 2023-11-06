@@ -37,7 +37,7 @@ GameManager.prototype.isGameTerminated = function () {
   const isGameTerminated = this.over || (this.won && !this.keepPlaying);
   // send react native message
   const eventData = { event: 'gameState', payload: {isGameTerminated, isOver: this.over, isWon: this.won } };
-  window.ReactNativeWebView.postMessage(JSON.stringify(eventData));
+  window?.ReactNativeWebView?.postMessage(JSON.stringify(eventData));
   return this.over || (this.won && !this.keepPlaying);
 };
 
@@ -91,7 +91,7 @@ GameManager.prototype.actuate = function () {
     this.storageManager.setBestScore(this.score);
     // send react native message
     const eventData = { event: 'setBestScore', payload: this.score };
-    window.ReactNativeWebView.postMessage(JSON.stringify(eventData));
+    window?.ReactNativeWebView?.postMessage(JSON.stringify(eventData));
   }
 
   // Clear the state when the game is over (game over only, not win)
@@ -99,7 +99,7 @@ GameManager.prototype.actuate = function () {
     this.storageManager.clearGameState();
     // send react native message
     const eventData = { event: 'gameOver', payload: true };
-    window.ReactNativeWebView.postMessage(JSON.stringify(eventData));
+    window?.ReactNativeWebView?.postMessage(JSON.stringify(eventData));
   } else {
     this.storageManager.setGameState(this.serialize());
   }
@@ -120,7 +120,7 @@ GameManager.prototype.actuate = function () {
         bestScore:  this.storageManager.getBestScore(),
         terminated: this.isGameTerminated()
       } };
-      window.ReactNativeWebView.postMessage(JSON.stringify(eventData));
+      window?.ReactNativeWebView?.postMessage(JSON.stringify(eventData));
 
 };
 
