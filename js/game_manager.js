@@ -22,6 +22,7 @@ function GameManager(size, InputManager, Actuator, StorageManager) {
 // Restart the game
 GameManager.prototype.restart = function () {
   this.storageManager.clearGameState();
+  this.clearUndoRedoStacks();
   this.actuator.continueGame(); // Clear the game won/lost message
   this.setup();
 };
@@ -118,7 +119,9 @@ GameManager.prototype.actuate = function () {
         over:       this.over,
         won:        this.won,
         bestScore:  this.storageManager.getBestScore(),
-        terminated: this.isGameTerminated()
+        terminated: this.isGameTerminated(),
+        isUndoAvailable: this.undoStack.length > 0,
+        isRedoAvailable: this.redoStack.length > 0
       } };
       window?.ReactNativeWebView?.postMessage(JSON.stringify(eventData));
 
@@ -154,10 +157,13 @@ GameManager.prototype.moveTile = function (tile, cell) {
 
 // Move tiles on the grid in the specified direction
 GameManager.prototype.move = function (direction) {
+  if (this.isGameTerminated()) return;
+  this.pushCurrentState();
+
   // 0: up, 1: right, 2: down, 3: left
   var self = this;
 
-  if (this.isGameTerminated()) return; // Don't do anything if the game's over
+  // if (this.isGameTerminated()) return; // Don't do anything if the game's over
 
   var cell, tile;
 
@@ -302,18 +308,25 @@ GameManager.prototype.positionsEqual = function (first, second) {
 
 GameManager.prototype.undo = function () {
   if (this.undoStack.length > 0) {
-    var prevState = this.undoStack.pop();
-    this.redoStack.push(this.serialize());
-    this.loadGameState(prevState);
+    const takeOneStepBack = () => {
+      const prevState = this.undoStack.pop();
+      this.redoStack.push(this.serialize());
+      this.loadGameState(prevState);
+    }
+    takeOneStepBack();
+    takeOneStepBack();
   }
 };
 
 GameManager.prototype.redo = function () {
   if (this.redoStack.length > 0) {
-    console.log("redoing");
-    var nextState = this.redoStack.pop();
-    this.undoStack.push(this.serialize());
-    this.loadGameState(nextState);
+    const takeOneStepForward = () => {
+      const nextState = this.redoStack.pop();
+      this.undoStack.push(this.serialize());
+      this.loadGameState(nextState);
+    }
+    takeOneStepForward();
+    takeOneStepForward();
   }
 };
 
